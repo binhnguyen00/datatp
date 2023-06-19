@@ -1,0 +1,46 @@
+# Compiled files
+bin/
+obj/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Bb]ackup/
+UpgradeLog.htm
+
+# Visual Studio files
+.vs/
+*.vspscc
+*_i.c
+*_p.c
+*.suo
+*.bak
+*.cache
+*.ilk
+*.clb
+*.ncb
+*.log
+*.pyc
+*.pyo
+*.pidb
+*.meta
+*.resharper*
+*.sln.docstates
+*.userprefs
+*.dotCover
+*.csproj.user
+*.xaml.user
+*.dotSettings.user
+
