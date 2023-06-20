@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace datatp {
   public class DatatpHttpClient {
-    private readonly HttpClient httpClient;
+    private HttpClient httpClient;
     private string baseRestUrl;
+    public string accessToken;
 
     public DatatpHttpClient(string baseRestUrl) {
       this.httpClient = new HttpClient();
@@ -19,7 +22,7 @@ namespace datatp {
       try {
         string url = baseRestUrl + path;
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
-        Dictionary<string, string> headers = createHeaders();
+        Dictionary<string, string> headers = createHeaders(accessToken);
         if (headers != null) {
           foreach (var header in headers) {
             request.Headers.TryAddWithoutValidation(header.Key, header.Value);
@@ -35,11 +38,11 @@ namespace datatp {
       }
     }
 
-    public async Task<string> Post(string path, string body = null) {
+    public HttpResponseMessage Post(string path, string body = null) {
       try {
         string url = baseRestUrl + path;
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-        Dictionary<string, string> headers = createHeaders();
+        Dictionary<string, string> headers = createHeaders(accessToken);
         if (headers != null) {
           foreach (var header in headers) {
             request.Headers.TryAddWithoutValidation(header.Key, header.Value);
@@ -48,23 +51,60 @@ namespace datatp {
         if (!string.IsNullOrEmpty(body)) {
           request.Content = new StringContent(body, Encoding.UTF8, "application/json");
         }
-        HttpResponseMessage response = await httpClient.SendAsync(request);
+        HttpResponseMessage response = httpClient.SendAsync(request).GetAwaiter().GetResult();
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        return response;
       } catch (Exception ex) {
         // Handle any exceptions
-        Console.WriteLine($"Error: {ex.Message}");
-        return string.Empty;
+        MessageBox.Show($"Error: {ex.Message}", "Error");
+        return null;
       }
     }
 
-    public Dictionary<string, string> createHeaders() {
+
+    public HttpResponseMessage Put(string path, string body = null) {
+      try {
+        string url = baseRestUrl + path;
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, url);
+        Dictionary<string, string> headers = createHeaders(accessToken);
+        if (headers != null) {
+          foreach (var header in headers) {
+            request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+          }
+        }
+        if (!string.IsNullOrEmpty(body)) {
+          request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+        }
+        HttpResponseMessage response = httpClient.SendAsync(request).GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
+        return response;
+      } catch (Exception ex) {
+        // Handle any exceptions
+        MessageBox.Show($"Error: {ex.Message}", "Error");
+        return null;
+      }
+    }
+
+    public Dictionary<string, string> createHeaders(string accessToken = null) {
       Dictionary<string, string> headers = new Dictionary<string, string> {
         { "Content-Type", "application/json" },
         { "Accept-Charset", "UTF-8" },
         { "Accept", "*/*" },
       };
+      if (accessToken != null) {
+        headers.Add(
+          "Datatp-Authorization", accessToken 
+        );  
+      }
       return headers;
+    }
+
+    public JObject GetResponseResultAsObject(Task<string> task = null) {
+      JObject jsonObject = null;
+      if (task != null) {
+        jsonObject = JsonConvert.DeserializeObject<JObject>(task.Result);
+      }
+      return jsonObject;
     }
   }
 }
